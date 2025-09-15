@@ -1,0 +1,94 @@
+name: zbd_ramp_flutter
+repository: https://github.com/zbdpay/ramp-flutter
+
+packages:
+  - .
+
+command:
+  version:
+    # Update version in pubspec.yaml and CHANGELOG.md
+    updateGitTagRefs: true
+    releaseUrl: true
+    workspaceChangelog: false
+
+  bootstrap:
+    runPubGetInParallel: false
+
+scripts:
+  analyze:
+    description: Run static analysis on all packages
+    run: dart analyze --fatal-infos
+
+  format:
+    description: Format all Dart code
+    run: dart format --set-exit-if-changed .
+
+  format:fix:
+    description: Format and fix all Dart code
+    run: dart format .
+
+  test:
+    description: Run all tests
+    run: flutter test
+
+  test:coverage:
+    description: Run tests with coverage
+    run: flutter test --coverage
+
+  lint:
+    description: Run linter and formatter
+    run: |
+      melos run format
+      melos run analyze
+
+  lint:fix:
+    description: Fix lint issues
+    run: |
+      melos run format:fix
+      melos run analyze
+
+  build:example:
+    description: Build example app
+    run: |
+      cd example
+      flutter build apk --debug
+      flutter build web
+
+  clean:
+    description: Clean all generated files
+    run: flutter clean
+
+  deps:get:
+    description: Get dependencies
+    run: flutter pub get
+
+  deps:upgrade:
+    description: Upgrade dependencies
+    run: flutter pub upgrade
+
+  publish:dry:
+    description: Dry run publish to pub.dev
+    run: flutter pub publish --dry-run
+
+  publish:
+    description: Publish to pub.dev
+    run: flutter pub publish
+
+  prerelease:
+    description: Pre-release checks
+    run: |
+      melos run lint
+      melos run test
+      melos run publish:dry
+
+  release:patch:
+    description: Create patch release
+    run: ./scripts/release.sh patch
+
+  release:minor:
+    description: Create minor release
+    run: ./scripts/release.sh minor
+
+  release:major:
+    description: Create major release
+    run: ./scripts/release.sh major

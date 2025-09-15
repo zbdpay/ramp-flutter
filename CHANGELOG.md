@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Widget now expands to fill available space when no dimensions specified (instead of fixed 600px height)
+- Updated session logic to match TypeScript implementation
+- Removed test/debug code that loaded Google.com in WebView
+
+### Added
+- Support for access_token authentication in addition to email
+- RefreshAccessToken functionality
+- Improved error handling with proper HTTP status code checking
+
+### Fixed
+- Base URL generation now uses zbdpay.com instead of zebedee.io
 
 ## [1.0.0] - 2024-08-08
 
