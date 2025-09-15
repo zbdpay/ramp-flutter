@@ -10,6 +10,31 @@ Flutter package for ZBD Ramp widget that enables Bitcoin purchase interface for 
 - ✅ **PostMessage Communication**: Real-time error handling, logging, and step tracking
 - ✅ **Session Management**: Built-in session token creation and management
 
+## Try the Example App
+
+**Quick way to test the package:**
+
+1. **Clone and navigate to the example:**
+   ```bash
+   git clone https://github.com/zbdpay/ramp-flutter.git
+   cd ramp-flutter/example
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run the example:**
+   ```bash
+   flutter run
+   ```
+
+4. **Test with your credentials:**
+   - Enter your ZBD API Key
+   - Fill in email and Lightning destination
+   - Tap "Create Session & Load Ramp"
+
 ## Installation
 
 Add this to your package's `pubspec.yaml` file:
@@ -334,107 +359,6 @@ void _handleError(RampError error) {
   print('Error: ${error.code} - ${error.message}');
   if (error.details != null) {
     print('Details: ${error.details}');
-  }
-}
-```
-
-### Modal Payment
-
-```dart
-void _showPaymentModal(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) => Container(
-      height: MediaQuery.of(context).size.height * 0.9,
-      child: ZBDRampWidget(
-        config: RampConfig(sessionToken: 'your-session-token'),
-        callbacks: RampCallbacks(
-          onSuccess: (data) => Navigator.pop(context),
-          onClose: () => Navigator.pop(context),
-        ),
-      ),
-    ),
-  );
-}
-```
-
-### Complete Example with Session Creation
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:zbd_ramp/zbd_ramp.dart';
-
-class CompletePaymentExample extends StatefulWidget {
-  @override
-  _CompletePaymentExampleState createState() => _CompletePaymentExampleState();
-}
-
-class _CompletePaymentExampleState extends State<CompletePaymentExample> {
-  String? sessionToken;
-  bool isLoading = false;
-
-  Future<void> createSession() async {
-    setState(() => isLoading = true);
-    
-    try {
-      final response = await initRampSession(InitRampSessionConfig(
-        apikey: 'your-api-key',
-        email: 'user@example.com',
-        destination: 'lightning-address',
-      ));
-
-      if (response.success) {
-        setState(() => sessionToken = response.data.sessionToken);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${response.error}')),
-        );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $error')),
-      );
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (sessionToken != null) {
-      return Scaffold(
-        appBar: AppBar(title: Text('Payment')),
-        body: ZBDRampWidget(
-          config: RampConfig(sessionToken: sessionToken!),
-          callbacks: RampCallbacks(
-            onSuccess: (data) {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Payment successful!')),
-              );
-            },
-            onError: (error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: ${error.message}')),
-              );
-            },
-          ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Create Payment')),
-      body: Center(
-        child: isLoading
-          ? CircularProgressIndicator()
-          : ElevatedButton(
-              onPressed: createSession,
-              child: Text('Start Payment'),
-            ),
-      ),
-    );
   }
 }
 ```

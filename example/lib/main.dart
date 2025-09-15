@@ -34,10 +34,12 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
   bool showRamp = false;
   bool debugMode = true;
   bool isLoading = false;
+  bool useAccessToken = false;
   List<String> logs = [];
 
   final TextEditingController apiKeyController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController accessTokenController = TextEditingController();
   final TextEditingController destinationController = TextEditingController();
   final TextEditingController webhookUrlController = TextEditingController(
       text: 'https://webhook.site/79f9c0fa-8cfa-4762-9c28-e94290e8c2e1');
@@ -54,12 +56,23 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
   }
 
   Future<void> createSessionToken() async {
-    if (apiKeyController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        destinationController.text.isEmpty) {
+    // Validate required fields
+    if (apiKeyController.text.isEmpty || destinationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content:
-              Text('Please fill in API Key, Email, and Destination fields')));
+          content: Text('Please fill in API Key and Destination fields')));
+      return;
+    }
+
+    // Validate authentication method
+    if (useAccessToken && accessTokenController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Please enter an Access Token')));
+      return;
+    }
+
+    if (!useAccessToken && emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Please enter an Email address')));
       return;
     }
 
@@ -71,11 +84,14 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
     try {
       final response = await initRampSession(InitRampSessionConfig(
         apikey: apiKeyController.text,
-        email: emailController.text,
+        email: useAccessToken ? null : emailController.text,
+        accessToken: useAccessToken ? accessTokenController.text : null,
         destination: destinationController.text,
         quoteCurrency: QuoteCurrency.USD,
         baseCurrency: BaseCurrency.BTC,
-        webhookUrl: webhookUrlController.text,
+        webhookUrl: webhookUrlController.text.isNotEmpty
+            ? webhookUrlController.text
+            : null,
         referenceId: referenceIdController.text.isNotEmpty
             ? referenceIdController.text
             : null,
@@ -266,16 +282,61 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Email:',
+                    const Text('Authentication Method:',
                         style: TextStyle(fontWeight: FontWeight.w500)),
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        hintText: 'user@example.com',
-                        border: OutlineInputBorder(),
-                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<bool>(
+                            title: const Text('Email'),
+                            value: false,
+                            groupValue: useAccessToken,
+                            onChanged: (value) {
+                              setState(() {
+                                useAccessToken = value!;
+                              });
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<bool>(
+                            title: const Text('Access Token'),
+                            value: true,
+                            groupValue: useAccessToken,
+                            onChanged: (value) {
+                              setState(() {
+                                useAccessToken = value!;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 16),
+                    if (!useAccessToken) ...[
+                      const Text('Email:',
+                          style: TextStyle(fontWeight: FontWeight.w500)),
+                      TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          hintText: 'user@example.com',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ] else ...[
+                      const Text('Access Token:',
+                          style: TextStyle(fontWeight: FontWeight.w500)),
+                      TextField(
+                        controller: accessTokenController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter your access token...',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     const Text('Destination:',
                         style: TextStyle(fontWeight: FontWeight.w500)),
