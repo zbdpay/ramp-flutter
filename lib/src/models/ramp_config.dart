@@ -43,7 +43,8 @@ class RampConfig {
 
 class InitRampSessionConfig {
   final String apikey;
-  final String email;
+  final String? email;
+  final String? accessToken;
   final String destination;
   final QuoteCurrency quoteCurrency;
   final BaseCurrency baseCurrency;
@@ -54,7 +55,8 @@ class InitRampSessionConfig {
 
   const InitRampSessionConfig({
     required this.apikey,
-    required this.email,
+    this.email,
+    this.accessToken,
     required this.destination,
     this.quoteCurrency = QuoteCurrency.USD,
     this.baseCurrency = BaseCurrency.BTC,
@@ -62,18 +64,34 @@ class InitRampSessionConfig {
     this.referenceId,
     this.metadata,
     this.environment = Environment.production,
-  });
+  }) : assert(email != null || accessToken != null, 'Either email or accessToken must be provided');
 
   Map<String, dynamic> toJson() {
-    return {
-      'email': email,
+    final Map<String, dynamic> json = {
       'destination': destination,
       'quote_currency': quoteCurrency.name,
       'base_currency': baseCurrency.name,
-      'webhook_url': webhookUrl,
-      'reference_id': referenceId,
-      'metadata': metadata,
     };
+
+    if (email != null) {
+      json['email'] = email;
+    } else if (accessToken != null) {
+      json['access_token'] = accessToken;
+    }
+
+    if (webhookUrl != null) {
+      json['webhook_url'] = webhookUrl;
+    }
+
+    if (referenceId != null) {
+      json['reference_id'] = referenceId;
+    }
+
+    if (metadata != null) {
+      json['metadata'] = metadata;
+    }
+
+    return json;
   }
 }
 
@@ -125,6 +143,91 @@ class InitRampSessionResponse {
         'session_token': data.sessionToken,
         'expires_at': data.expiresAt,
         'widget_url': data.widgetUrl,
+      },
+      'error': error,
+      'success': success,
+      'message': message,
+    };
+  }
+}
+
+class RefreshAccessTokenConfig {
+  final String apikey;
+  final String accessTokenId;
+  final String refreshToken;
+  final Environment environment;
+
+  const RefreshAccessTokenConfig({
+    required this.apikey,
+    required this.accessTokenId,
+    required this.refreshToken,
+    this.environment = Environment.production,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'access_token_id': accessTokenId,
+      'refresh_token': refreshToken,
+    };
+  }
+}
+
+class RefreshAccessTokenData {
+  final String accessTokenId;
+  final String accessToken;
+  final String refreshToken;
+  final String accessTokenExpiresAt;
+  final String refreshTokenExpiresAt;
+
+  const RefreshAccessTokenData({
+    required this.accessTokenId,
+    required this.accessToken,
+    required this.refreshToken,
+    required this.accessTokenExpiresAt,
+    required this.refreshTokenExpiresAt,
+  });
+
+  factory RefreshAccessTokenData.fromJson(Map<String, dynamic> json) {
+    return RefreshAccessTokenData(
+      accessTokenId: json['access_token_id'] ?? '',
+      accessToken: json['access_token'] ?? '',
+      refreshToken: json['refresh_token'] ?? '',
+      accessTokenExpiresAt: json['access_token_expires_at'] ?? '',
+      refreshTokenExpiresAt: json['refresh_token_expires_at'] ?? '',
+    );
+  }
+}
+
+class RefreshAccessTokenResponse {
+  final RefreshAccessTokenData data;
+  final String? error;
+  final bool success;
+  final String message;
+
+  const RefreshAccessTokenResponse({
+    required this.data,
+    this.error,
+    required this.success,
+    required this.message,
+  });
+
+  factory RefreshAccessTokenResponse.fromJson(Map<String, dynamic> json) {
+    return RefreshAccessTokenResponse(
+      data: RefreshAccessTokenData.fromJson(json['data']),
+      error: json['error'],
+      success: json['success'],
+      message: json['message'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'data': {
+        'access_token_id': data.accessTokenId,
+        'access_token': data.accessToken,
+        'refresh_token': data.refreshToken,
+        'access_token_expires_at': data.accessTokenExpiresAt,
+        'refresh_token_expires_at': data.refreshTokenExpiresAt,
       },
       'error': error,
       'success': success,

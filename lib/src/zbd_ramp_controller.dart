@@ -93,35 +93,18 @@ class ZBDRampController {
       print('Building widget URL: $widgetUrl');
     }
     
-    print('About to load URL: $widgetUrl');
-    
+    print('Loading widget URL: $widgetUrl');
+
     try {
-      // Test with a very simple HTML first
-      print('🧪 Testing with simple HTML...');
-      _webViewController.loadHtmlString('<html><body><h1>Test HTML</h1></body></html>');
-      
-      // After 3 seconds, try loading Google
-      Future.delayed(Duration(seconds: 3), () {
-        print('🧪 Now testing with Google...');
-        _webViewController.loadRequest(Uri.parse('https://www.google.com'));
-      });
-      
-      // After 8 seconds, load the actual widget URL
-      Future.delayed(Duration(seconds: 8), () {
-        print('🎯 Now loading widget URL...');
-        final uri = Uri.parse(widgetUrl);
-        _webViewController.loadRequest(uri);
-      });
-      
+      final uri = Uri.parse(widgetUrl);
+      _webViewController.loadRequest(uri);
     } catch (e) {
-      print('❌ Error in initialization: $e');
+      print('❌ Error loading widget: $e');
     }
   }
 
   void _onPageFinished(String url) {
     print('WebView finished loading: $url');
-    // Widget is ready - no additional configuration needed
-    // All configuration is handled via the session token
   }
 
   void _handleMessage(JavaScriptMessage message) {
@@ -179,8 +162,6 @@ class ZBDRampController {
   }
 
   void updateConfig(RampConfig newConfig) {
-    // Configuration updates would require a new session token
-    // For now, we recommend creating a new widget instance
     if (kDebugMode) {
       print('Configuration updates require a new session token. Create a new widget instance.');
     }

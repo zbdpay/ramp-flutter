@@ -52,7 +52,6 @@ class _ZBDRampWidgetState extends State<ZBDRampWidget> {
     return webView;
   }
 
-  // Public methods to interact with the widget
   void updateConfig(RampConfig newConfig) {
     _controller.updateConfig(newConfig);
   }
