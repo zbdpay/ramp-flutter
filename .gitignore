@@ -31,6 +31,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# FVM (Flutter Version Management)
+.fvm/
+
 # Symbolication related
 app.*.symbols
 
@@ -41,6 +44,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Example Android build artifacts
+/example/android/app/debug
+/example/android/app/profile
+/example/android/app/release
+/example/android/build/
+/example/android/.gradle/
+/example/android/gradle/
+/example/build/
 
 # Coverage reports
 coverage/

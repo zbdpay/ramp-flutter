@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'models/ramp_config.dart';
 import 'models/ramp_callbacks.dart';
@@ -33,87 +34,176 @@ class PostMessageData {
 }
 
 class ZBDRampController {
-  late final WebViewController _webViewController;
+  InAppWebViewController? _webViewController;
   final RampConfig config;
   final RampCallbacks callbacks;
+  bool _isInitialized = false;
+  VoidCallback? onInitialized;
 
   ZBDRampController({
     required this.config,
     required this.callbacks,
+    this.onInitialized,
   }) {
     print(
         'ZBDRampController: Initializing with session token: ${config.sessionToken.substring(0, 20)}...');
-    _initializeController();
+    _requestPermissionsAndInitialize();
   }
 
-  WebViewController get webViewController => _webViewController;
+  InAppWebViewController? get webViewController => _webViewController;
+  bool get isInitialized => _isInitialized;
 
-  void _initializeController() {
-    print('ZBDRampController: Starting controller initialization');
+  Future<void> _requestPermissionsAndInitialize() async {
+    print('🔐 Requesting camera and audio permissions...');
 
-    _webViewController = WebViewController();
-    print('WebViewController created');
+    try {
+      final Map<Permission, PermissionStatus> permissions = await [
+        Permission.camera,
+        Permission.microphone,
+      ].request();
 
-    _webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
-    print('JavaScript mode set');
+      print('📷 Camera permission: ${permissions[Permission.camera]}');
+      print('🎤 Microphone permission: ${permissions[Permission.microphone]}');
 
-    _webViewController.setUserAgent(
-        'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36');
-    print('User agent set');
+      _isInitialized = true;
+      print('✅ ZBDRampController initialization completed');
+      onInitialized?.call();
+    } catch (e) {
+      print('❌ Error requesting permissions: $e');
+      _isInitialized = true;
+      onInitialized?.call();
+    }
+  }
 
-    _webViewController.setNavigationDelegate(
-      NavigationDelegate(
-        onPageFinished: (String url) {
-          print('✅ WebView finished loading: $url');
-        },
-        onPageStarted: (String url) {
-          print('🔄 WebView started loading: $url');
-        },
-        onWebResourceError: (WebResourceError error) {
-          print(
-              '❌ WebView resource error: ${error.description} - ${error.errorCode}');
-        },
-        onNavigationRequest: (NavigationRequest request) {
-          print('📍 Navigation request: ${request.url}');
-          return NavigationDecision.navigate;
-        },
-      ),
+  InAppWebViewSettings get initialSettings => InAppWebViewSettings(
+    useShouldOverrideUrlLoading: false,
+    mediaPlaybackRequiresUserGesture: false,
+    allowsInlineMediaPlayback: true,
+    iframeAllow: "camera; microphone",
+    iframeAllowFullscreen: true,
+    javaScriptEnabled: true,
+    domStorageEnabled: true,
+    databaseEnabled: true,
+    userAgent: 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36',
+  );
+
+  void onWebViewCreated(InAppWebViewController controller) {
+    _webViewController = controller;
+    print('✅ InAppWebView created');
+
+    _webViewController!.addJavaScriptHandler(
+      handlerName: 'ZBDRampChannel',
+      callback: (args) {
+        if (args.isNotEmpty) {
+          _handleMessage(args[0].toString());
+        }
+      },
     );
-    print('NavigationDelegate set');
 
-    _webViewController.addJavaScriptChannel(
-      'ZBDRampChannel',
-      onMessageReceived: _handleMessage,
+    final String widgetUrl = _buildWidgetUrl();
+    print('📍 Loading widget URL: $widgetUrl');
+
+    _webViewController!.loadUrl(
+      urlRequest: URLRequest(url: WebUri(widgetUrl)),
     );
-    print('JavaScript channel set');
+  }
 
-    final String widgetUrl;
+  String _buildWidgetUrl() {
     if (config.widgetUrl != null) {
-      widgetUrl = config.widgetUrl!;
-      print('Using API-provided widget URL: $widgetUrl');
+      print('Using API-provided widget URL: ${config.widgetUrl}');
+      return config.widgetUrl!;
     } else {
       final baseUrl = UrlBuilder.getWidgetUrl(config.environment);
-      widgetUrl = UrlBuilder.buildWidgetUrl(
+      final widgetUrl = UrlBuilder.buildWidgetUrl(
         baseUrl: baseUrl,
         sessionToken: config.sessionToken,
         secret: config.secret,
       );
       print('Building widget URL: $widgetUrl');
-    }
-
-    print('Loading widget URL: $widgetUrl');
-
-    try {
-      final uri = Uri.parse(widgetUrl);
-      _webViewController.loadRequest(uri);
-    } catch (e) {
-      print('❌ Error loading widget: $e');
+      return widgetUrl;
     }
   }
 
-  void _handleMessage(JavaScriptMessage message) {
+  Future<PermissionResponse?> onPermissionRequest(InAppWebViewController controller, PermissionRequest request) async {
+    print('📷 WebView permission request for origin: ${request.origin}');
+    print('📷 Resources requested: ${request.resources}');
+
+    final resources = <PermissionResourceType>[];
+
+    for (final resource in request.resources) {
+      if (resource == PermissionResourceType.CAMERA ||
+          resource == PermissionResourceType.MICROPHONE) {
+        resources.add(resource);
+        print('✅ Granting permission for: $resource');
+      }
+    }
+
+    return PermissionResponse(
+      resources: resources,
+      action: PermissionResponseAction.GRANT,
+    );
+  }
+
+  void onLoadStart(InAppWebViewController controller, WebUri? url) {
+    print('🔄 WebView started loading: $url');
+  }
+
+  void onLoadStop(InAppWebViewController controller, WebUri? url) {
+    print('✅ WebView finished loading: $url');
+
+    controller.evaluateJavascript(source: '''
+      console.log('🔍 Testing camera permissions...');
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        console.log('✅ getUserMedia is available');
+
+        navigator.permissions.query({name: 'camera'}).then(function(result) {
+          console.log('📷 Camera permission status: ' + result.state);
+          window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify({
+            type: 'CAMERA_PERMISSION_STATUS',
+            payload: { status: result.state }
+          }));
+        }).catch(function(error) {
+          console.log('❌ Permission query failed:', error);
+        });
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function(stream) {
+            console.log('✅ Camera access granted');
+            stream.getTracks().forEach(track => track.stop());
+            window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify({
+              type: 'CAMERA_TEST_SUCCESS',
+              payload: { message: 'Camera access successful' }
+            }));
+          })
+          .catch(function(error) {
+            console.log('❌ Camera access failed:', error.name, error.message);
+            window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify({
+              type: 'CAMERA_TEST_ERROR',
+              payload: {
+                name: error.name,
+                message: error.message,
+                code: error.code || 'unknown'
+              }
+            }));
+          });
+      } else {
+        console.log('❌ getUserMedia not available');
+        window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify({
+          type: 'CAMERA_TEST_ERROR',
+          payload: { message: 'getUserMedia not available' }
+        }));
+      }
+    ''');
+  }
+
+  void onReceivedError(InAppWebViewController controller, WebResourceRequest request, WebResourceError error) {
+    print('❌ WebView resource error: ${error.description} - ${error.type}');
+  }
+
+  void _handleMessage(String message) {
     try {
-      final data = jsonDecode(message.message) as Map<String, dynamic>;
+      final data = jsonDecode(message) as Map<String, dynamic>;
       final postMessage = PostMessageData.fromJson(data);
 
       switch (postMessage.type) {
@@ -158,9 +248,9 @@ class ZBDRampController {
 
   void sendMessage(PostMessageData message) {
     final messageJson = jsonEncode(message.toJson());
-    _webViewController.runJavaScript('''
-      if (window.ZBDRampChannel) {
-        window.ZBDRampChannel.postMessage('$messageJson');
+    _webViewController?.evaluateJavascript(source: '''
+      if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        window.flutter_inappwebview.callHandler('ZBDRampChannel', '$messageJson');
       }
     ''');
   }
@@ -173,6 +263,6 @@ class ZBDRampController {
   }
 
   void reload() {
-    _webViewController.reload();
+    _webViewController?.reload();
   }
 }

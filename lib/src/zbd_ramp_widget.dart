@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'models/ramp_config.dart';
 import 'models/ramp_callbacks.dart';
@@ -32,13 +32,40 @@ class _ZBDRampWidgetState extends State<ZBDRampWidget> {
     _controller = ZBDRampController(
       config: widget.config,
       callbacks: widget.callbacks,
+      onInitialized: () {
+        if (mounted) {
+          setState(() {});
+        }
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget webView = WebViewWidget(
-      controller: _controller.webViewController,
+    if (!_controller.isInitialized) {
+      return Container(
+        width: widget.width,
+        height: widget.height,
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Requesting permissions...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget webView = InAppWebView(
+      initialSettings: _controller.initialSettings,
+      onWebViewCreated: _controller.onWebViewCreated,
+      onPermissionRequest: _controller.onPermissionRequest,
+      onLoadStart: _controller.onLoadStart,
+      onLoadStop: _controller.onLoadStop,
+      onReceivedError: _controller.onReceivedError,
     );
 
     if (widget.width != null || widget.height != null) {
