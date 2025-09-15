@@ -7,7 +7,7 @@ void main() {
 }
 
 class ZBDRampExampleApp extends StatelessWidget {
-  const ZBDRampExampleApp({Key? key}) : super(key: key);
+  const ZBDRampExampleApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class ZBDRampExampleApp extends StatelessWidget {
 }
 
 class ZBDRampHomePage extends StatefulWidget {
-  const ZBDRampHomePage({Key? key}) : super(key: key);
+  const ZBDRampHomePage({super.key});
 
   @override
   State<ZBDRampHomePage> createState() => _ZBDRampHomePageState();
@@ -100,8 +100,10 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
       }
     } catch (error) {
       addLog('ERROR: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Session Creation Error: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Session Creation Error: $error')));
+      }
     } finally {
       setState(() {
         isLoading = false;

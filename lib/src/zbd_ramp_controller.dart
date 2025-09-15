@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'models/ramp_config.dart';
@@ -82,6 +81,12 @@ class ZBDRampController {
     );
     print('NavigationDelegate set');
 
+    _webViewController.addJavaScriptChannel(
+      'ZBDRampChannel',
+      onMessageReceived: _handleMessage,
+    );
+    print('JavaScript channel set');
+
     final String widgetUrl;
     if (config.widgetUrl != null) {
       widgetUrl = config.widgetUrl!;
@@ -104,10 +109,6 @@ class ZBDRampController {
     } catch (e) {
       print('❌ Error loading widget: $e');
     }
-  }
-
-  void _onPageFinished(String url) {
-    print('WebView finished loading: $url');
   }
 
   void _handleMessage(JavaScriptMessage message) {
