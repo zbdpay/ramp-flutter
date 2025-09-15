@@ -9,7 +9,8 @@ class UrlBuilder {
   };
 
   static String getWidgetUrl(Environment environment) {
-    return _environmentUrls[environment] ?? _environmentUrls[Environment.production]!;
+    return _environmentUrls[environment] ??
+        _environmentUrls[Environment.production]!;
   }
 
   static String buildWidgetUrl({
@@ -19,15 +20,17 @@ class UrlBuilder {
   }) {
     final uri = Uri.parse(baseUrl);
     final queryParams = <String, String>{};
-    
+
     queryParams['session_token'] = Uri.encodeComponent(sessionToken);
-    
+
     if (secret != null) {
       queryParams['secret'] = secret;
     }
 
-    return uri.replace(
-      queryParameters: queryParams,
-    ).toString();
+    return uri
+        .replace(
+          queryParameters: queryParams,
+        )
+        .toString();
   }
 }

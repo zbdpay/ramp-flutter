@@ -9,7 +9,8 @@ String _getBaseUrl(Environment environment) {
   return 'https://${environment.name}.zbdpay.com';
 }
 
-Future<T> _handleFailedResponse<T>({required http.Response response, required String operation}) async {
+Future<T> _handleFailedResponse<T>(
+    {required http.Response response, required String operation}) async {
   String errorMessage = '${response.statusCode} ${response.reasonPhrase}';
   try {
     final textBody = response.body;
@@ -27,7 +28,8 @@ Future<T> _handleFailedResponse<T>({required http.Response response, required St
   throw Exception('Failed to $operation: $errorMessage');
 }
 
-Future<InitRampSessionResponse> initRampSession(InitRampSessionConfig config) async {
+Future<InitRampSessionResponse> initRampSession(
+    InitRampSessionConfig config) async {
   try {
     final baseUrl = _getBaseUrl(config.environment);
     final url = Uri.parse('$baseUrl/api/v1/ramp-widget');
@@ -56,7 +58,8 @@ Future<InitRampSessionResponse> initRampSession(InitRampSessionConfig config) as
   }
 }
 
-Future<RefreshAccessTokenResponse> refreshAccessToken(RefreshAccessTokenConfig config) async {
+Future<RefreshAccessTokenResponse> refreshAccessToken(
+    RefreshAccessTokenConfig config) async {
   try {
     final baseUrl = _getBaseUrl(config.environment);
     final url = Uri.parse('$baseUrl/api/v1/access-tokens/refresh');

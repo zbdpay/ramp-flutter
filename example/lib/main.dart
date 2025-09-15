@@ -35,13 +35,12 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
   bool debugMode = true;
   bool isLoading = false;
   List<String> logs = [];
-  
+
   final TextEditingController apiKeyController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController destinationController = TextEditingController();
   final TextEditingController webhookUrlController = TextEditingController(
-    text: 'https://webhook.site/79f9c0fa-8cfa-4762-9c28-e94290e8c2e1'
-  );
+      text: 'https://webhook.site/79f9c0fa-8cfa-4762-9c28-e94290e8c2e1');
   final TextEditingController referenceIdController = TextEditingController();
 
   void addLog(String message) {
@@ -55,16 +54,18 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
   }
 
   Future<void> createSessionToken() async {
-    if (apiKeyController.text.isEmpty || 
-        emailController.text.isEmpty || 
+    if (apiKeyController.text.isEmpty ||
+        emailController.text.isEmpty ||
         destinationController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in API Key, Email, and Destination fields'))
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text('Please fill in API Key, Email, and Destination fields')));
       return;
     }
 
-    setState(() { isLoading = true; });
+    setState(() {
+      isLoading = true;
+    });
     addLog('Creating session token...');
 
     try {
@@ -75,14 +76,17 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
         quoteCurrency: QuoteCurrency.USD,
         baseCurrency: BaseCurrency.BTC,
         webhookUrl: webhookUrlController.text,
-        referenceId: referenceIdController.text.isNotEmpty ? referenceIdController.text : null,
+        referenceId: referenceIdController.text.isNotEmpty
+            ? referenceIdController.text
+            : null,
         metadata: {
           'created_from': 'ramp-flutter-example',
         },
         environment: Environment.x1,
       ));
 
-      addLog('Session response: ${const JsonEncoder.withIndent('  ').convert(response.toJson())}');
+      addLog(
+          'Session response: ${const JsonEncoder.withIndent('  ').convert(response.toJson())}');
 
       if (response.success) {
         final token = response.data.sessionToken;
@@ -97,10 +101,11 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
     } catch (error) {
       addLog('ERROR: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Session Creation Error: $error'))
-      );
+          SnackBar(content: Text('Session Creation Error: $error')));
     } finally {
-      setState(() { isLoading = false; });
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -154,13 +159,17 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
 
   void handleClose() {
     addLog('WIDGET: Closed by user');
-    setState(() { showRamp = false; });
+    setState(() {
+      showRamp = false;
+    });
   }
 
   void startPayment() {
     if (sessionToken.trim().isNotEmpty) {
       addLog('Starting payment with existing session token');
-      setState(() { showRamp = true; });
+      setState(() {
+        showRamp = true;
+      });
     } else {
       createSessionToken();
     }
@@ -168,11 +177,15 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
 
   void closePayment() {
     addLog('Closing payment widget');
-    setState(() { showRamp = false; });
+    setState(() {
+      showRamp = false;
+    });
   }
 
   void clearLogs() {
-    setState(() { logs.clear(); });
+    setState(() {
+      logs.clear();
+    });
   }
 
   @override
@@ -228,7 +241,6 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -237,11 +249,12 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                   children: [
                     const Text(
                       'Configuration',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 16),
-                    
-                    const Text('API Key:', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text('API Key:',
+                        style: TextStyle(fontWeight: FontWeight.w500)),
                     TextField(
                       controller: apiKeyController,
                       obscureText: true,
@@ -251,8 +264,8 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
-                    const Text('Email:', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text('Email:',
+                        style: TextStyle(fontWeight: FontWeight.w500)),
                     TextField(
                       controller: emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -262,8 +275,8 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
-                    const Text('Destination:', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text('Destination:',
+                        style: TextStyle(fontWeight: FontWeight.w500)),
                     TextField(
                       controller: destinationController,
                       decoration: const InputDecoration(
@@ -272,8 +285,8 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
-                    const Text('Webhook URL:', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text('Webhook URL:',
+                        style: TextStyle(fontWeight: FontWeight.w500)),
                     TextField(
                       controller: webhookUrlController,
                       keyboardType: TextInputType.url,
@@ -283,8 +296,8 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
-                    const Text('Reference ID (optional):', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text('Reference ID (optional):',
+                        style: TextStyle(fontWeight: FontWeight.w500)),
                     TextField(
                       controller: referenceIdController,
                       decoration: const InputDecoration(
@@ -293,9 +306,9 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
                     if (sessionToken.isNotEmpty) ...[
-                      const Text('Current Session Token:', style: TextStyle(fontWeight: FontWeight.w500)),
+                      const Text('Current Session Token:',
+                          style: TextStyle(fontWeight: FontWeight.w500)),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -309,14 +322,16 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Debug Logging:', style: TextStyle(fontWeight: FontWeight.w500)),
+                        const Text('Debug Logging:',
+                            style: TextStyle(fontWeight: FontWeight.w500)),
                         Switch(
                           value: debugMode,
-                          onChanged: (value) => setState(() { debugMode = value; }),
+                          onChanged: (value) => setState(() {
+                            debugMode = value;
+                          }),
                           activeColor: Colors.orange,
                         ),
                       ],
@@ -325,7 +340,6 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                 ),
               ),
             ),
-            
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: isLoading ? null : startPayment,
@@ -335,23 +349,24 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
-                isLoading 
-                  ? 'Creating Session...' 
-                  : sessionToken.isNotEmpty 
-                    ? 'Start Payment' 
-                    : 'Create Session & Start Payment',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                isLoading
+                    ? 'Creating Session...'
+                    : sessionToken.isNotEmpty
+                        ? 'Start Payment'
+                        : 'Create Session & Start Payment',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
-            
             if (sessionToken.isNotEmpty) ...[
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: () => setState(() { sessionToken = ''; }),
+                onPressed: () => setState(() {
+                  sessionToken = '';
+                }),
                 child: const Text('Clear Session'),
               ),
             ],
-            
             const SizedBox(height: 24),
             Card(
               child: Padding(
@@ -364,7 +379,8 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                       children: [
                         const Text(
                           'Debug Logs',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w600),
                         ),
                         ElevatedButton(
                           onPressed: clearLogs,
@@ -373,7 +389,8 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                             foregroundColor: Colors.black,
                             minimumSize: const Size(60, 30),
                           ),
-                          child: const Text('Clear', style: TextStyle(fontSize: 12)),
+                          child: const Text('Clear',
+                              style: TextStyle(fontSize: 12)),
                         ),
                       ],
                     ),
@@ -386,25 +403,27 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: logs.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No logs yet...',
-                              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: logs.length,
-                            itemBuilder: (context, index) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
+                          ? const Center(
                               child: Text(
-                                logs[index],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: 'monospace',
+                                'No logs yet...',
+                                style: TextStyle(
+                                    color: Colors.grey,
+                                    fontStyle: FontStyle.italic),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: logs.length,
+                              itemBuilder: (context, index) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text(
+                                  logs[index],
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'monospace',
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                     ),
                   ],
                 ),

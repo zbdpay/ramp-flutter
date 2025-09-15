@@ -42,7 +42,8 @@ class ZBDRampController {
     required this.config,
     required this.callbacks,
   }) {
-    print('ZBDRampController: Initializing with session token: ${config.sessionToken.substring(0, 20)}...');
+    print(
+        'ZBDRampController: Initializing with session token: ${config.sessionToken.substring(0, 20)}...');
     _initializeController();
   }
 
@@ -50,16 +51,17 @@ class ZBDRampController {
 
   void _initializeController() {
     print('ZBDRampController: Starting controller initialization');
-    
+
     _webViewController = WebViewController();
     print('WebViewController created');
-    
+
     _webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
     print('JavaScript mode set');
-    
-    _webViewController.setUserAgent('Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36');
+
+    _webViewController.setUserAgent(
+        'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36');
     print('User agent set');
-    
+
     _webViewController.setNavigationDelegate(
       NavigationDelegate(
         onPageFinished: (String url) {
@@ -69,7 +71,8 @@ class ZBDRampController {
           print('🔄 WebView started loading: $url');
         },
         onWebResourceError: (WebResourceError error) {
-          print('❌ WebView resource error: ${error.description} - ${error.errorCode}');
+          print(
+              '❌ WebView resource error: ${error.description} - ${error.errorCode}');
         },
         onNavigationRequest: (NavigationRequest request) {
           print('📍 Navigation request: ${request.url}');
@@ -92,7 +95,7 @@ class ZBDRampController {
       );
       print('Building widget URL: $widgetUrl');
     }
-    
+
     print('Loading widget URL: $widgetUrl');
 
     try {
@@ -111,35 +114,35 @@ class ZBDRampController {
     try {
       final data = jsonDecode(message.message) as Map<String, dynamic>;
       final postMessage = PostMessageData.fromJson(data);
-      
+
       switch (postMessage.type) {
         case 'WIDGET_SUCCESS':
           callbacks.onSuccess?.call(postMessage.payload);
           break;
-          
+
         case 'WIDGET_ERROR':
           final error = RampError.fromJson(postMessage.payload ?? {});
           callbacks.onError?.call(error);
           break;
-          
+
         case 'WIDGET_STEP_CHANGE':
           final step = postMessage.payload?['step'] as String? ?? '';
           callbacks.onStepChange?.call(step);
           break;
-          
+
         case 'WIDGET_LOG':
           final log = RampLog.fromJson(postMessage.payload ?? {});
           callbacks.onLog?.call(log);
           break;
-          
+
         case 'WIDGET_READY':
           callbacks.onReady?.call();
           break;
-          
+
         case 'WIDGET_CLOSE':
           callbacks.onClose?.call();
           break;
-          
+
         default:
           if (kDebugMode) {
             print('Unknown message type from widget: ${postMessage.type}');
@@ -163,7 +166,8 @@ class ZBDRampController {
 
   void updateConfig(RampConfig newConfig) {
     if (kDebugMode) {
-      print('Configuration updates require a new session token. Create a new widget instance.');
+      print(
+          'Configuration updates require a new session token. Create a new widget instance.');
     }
   }
 

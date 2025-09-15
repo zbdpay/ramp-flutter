@@ -64,7 +64,8 @@ class InitRampSessionConfig {
     this.referenceId,
     this.metadata,
     this.environment = Environment.production,
-  }) : assert(email != null || accessToken != null, 'Either email or accessToken must be provided');
+  }) : assert(email != null || accessToken != null,
+            'Either email or accessToken must be provided');
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> json = {
