@@ -1,13 +1,13 @@
-# ZBD Ramp Flutter
+# zbd_ramp
 
-Flutter package for ZBD Ramp widget that enables Bitcoin Lightning Network payments in Flutter applications.
+Flutter package for ZBD Ramp widget that enables Bitcoin purchase interface for Flutter applications.
 
 ## Features
 
 - ✅ **Flutter Optimized**: Built specifically for Flutter with native WebView
-- ✅ **Cross-Platform**: Works on iOS, Android, and Web  
+- ✅ **Cross-Platform**: Works on iOS, Android, and Web
 - ✅ **Type Safe**: Full Dart type safety with comprehensive type definitions
-- ✅ **Widget API**: Easy-to-use Flutter widget interface
+- ✅ **PostMessage Communication**: Real-time error handling, logging, and step tracking
 - ✅ **Session Management**: Built-in session token creation and management
 
 ## Installation
@@ -35,9 +35,20 @@ First, create a session token using the ZBD API:
 ```dart
 import 'package:zbd_ramp/zbd_ramp.dart';
 
+// Using email authentication
 final response = await initRampSession(InitRampSessionConfig(
   apikey: 'your-zbd-api-key',
   email: 'user@example.com',
+  destination: 'lightning-address-or-username',
+  quoteCurrency: QuoteCurrency.USD,
+  baseCurrency: BaseCurrency.BTC,
+  webhookUrl: 'https://your-webhook-url.com',
+));
+
+// Or using access token authentication
+final response = await initRampSession(InitRampSessionConfig(
+  apikey: 'your-zbd-api-key',
+  accessToken: 'user-access-token',
   destination: 'lightning-address-or-username',
   quoteCurrency: QuoteCurrency.USD,
   baseCurrency: BaseCurrency.BTC,
@@ -87,7 +98,8 @@ Creates a new session token for the ZBD Ramp widget.
 ```dart
 class InitRampSessionConfig {
   final String apikey;                            // Required: Your ZBD API key
-  final String email;                             // Required: User's email address
+  final String? email;                            // Email authentication
+  final String? accessToken;                     // Access token authentication
   final String destination;                       // Required: Lightning address or username
   final QuoteCurrency quoteCurrency;              // Required: Quote currency (USD)
   final BaseCurrency baseCurrency;                // Required: Base currency (BTC)
@@ -95,6 +107,8 @@ class InitRampSessionConfig {
   final String? referenceId;                      // Optional: Your reference ID
   final Map<String, dynamic>? metadata;           // Optional: Additional metadata
 }
+
+// Note: Either email OR accessToken must be provided
 ```
 
 #### Returns
@@ -119,6 +133,7 @@ class InitRampSessionData {
 ```dart
 import 'package:zbd_ramp/zbd_ramp.dart';
 
+// Using email authentication
 try {
   final response = await initRampSession(InitRampSessionConfig(
     apikey: 'your-zbd-api-key',
@@ -139,6 +154,91 @@ try {
   }
 } catch (error) {
   print('Session creation error: $error');
+}
+
+// Using access token authentication
+try {
+  final response = await initRampSession(InitRampSessionConfig(
+    apikey: 'your-zbd-api-key',
+    accessToken: 'user-access-token',
+    destination: 'lightning-address',
+    quoteCurrency: QuoteCurrency.USD,
+    baseCurrency: BaseCurrency.BTC,
+    webhookUrl: 'https://your-webhook.com',
+    referenceId: 'order-123',
+    metadata: {'userId': '456', 'plan': 'premium'},
+  ));
+
+  if (response.success) {
+    final sessionToken = response.data.sessionToken;
+    // Use sessionToken with ZBDRampWidget
+  } else {
+    print('Failed to create session: ${response.error}');
+  }
+} catch (error) {
+  print('Session creation error: $error');
+}
+```
+
+### refreshAccessToken(config)
+
+Refreshes an expired access token using a refresh token.
+
+**Token Lifecycle:**
+- Access tokens expire after **30 days**
+- Refresh tokens expire after **90 days**
+- Both tokens are received via webhook after user completes OTP login with email
+
+#### Parameters
+
+```dart
+class RefreshAccessTokenConfig {
+  final String apikey;                            // Required: Your ZBD API key
+  final String accessTokenId;                     // Required: ID of the access token to refresh
+  final String refreshToken;                      // Required: Refresh token
+}
+```
+
+#### Returns
+
+```dart
+class RefreshAccessTokenResponse {
+  final RefreshAccessTokenData data;              // Token data
+  final String? error;                            // Error message if failed
+  final bool success;                             // Success status
+  final String message;                           // Response message
+}
+
+class RefreshAccessTokenData {
+  final String accessTokenId;                     // Access token ID
+  final String accessToken;                       // New access token
+  final String refreshToken;                      // New refresh token
+  final String accessTokenExpiresAt;              // Access token expiration time
+  final String refreshTokenExpiresAt;             // Refresh token expiration time
+}
+```
+
+#### Example
+
+```dart
+import 'package:zbd_ramp/zbd_ramp.dart';
+
+try {
+  final response = await refreshAccessToken(RefreshAccessTokenConfig(
+    apikey: 'your-zbd-api-key',
+    accessTokenId: '7b585ffa-9473-43ca-ba1d-56e9e7e2263b',
+    refreshToken: 'user-refresh-token',
+  ));
+
+  if (response.success) {
+    final newAccessToken = response.data.accessToken;
+    final newRefreshToken = response.data.refreshToken;
+    // Store the new tokens securely
+  } else {
+    print('Failed to refresh token: ${response.error}');
+  }
+} catch (error) {
+  print('Token refresh error: $error');
 }
 ```
 
@@ -351,6 +451,8 @@ Add the following to your `ios/Runner/Info.plist`:
   <key>NSAllowsArbitraryLoads</key>
   <true/>
 </dict>
+<key>NSCameraUsageDescription</key>
+<string>Camera access is required for QR code scanning in payment flow</string>
 ```
 
 ### Android
@@ -359,6 +461,7 @@ Add the following to your `android/app/src/main/AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.CAMERA" />
 ```
 
 ## Framework Integrations
