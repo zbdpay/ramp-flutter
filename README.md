@@ -376,7 +376,7 @@ Add the following to your `ios/Runner/Info.plist`:
   <true/>
 </dict>
 <key>NSCameraUsageDescription</key>
-<string>Camera access is required for QR code scanning in payment flow</string>
+<string>Camera access is required for KYC flow</string>
 ```
 
 ### Android
@@ -386,6 +386,11 @@ Add the following to your `android/app/src/main/AndroidManifest.xml`:
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+<uses-permission android:name="android.permission.VIDEO_CAPTURE" />
+<uses-permission android:name="android.permission.AUDIO_CAPTURE" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
 
 ## Framework Integrations
