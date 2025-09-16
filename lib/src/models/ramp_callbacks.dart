@@ -9,7 +9,8 @@ typedef OnStepChangeCallback = void Function(String step);
 typedef OnLogCallback = void Function(RampLog log);
 typedef OnReadyCallback = void Function();
 typedef OnCloseCallback = void Function();
-typedef OnCreateWindowCallback = void Function(CreateWindowAction createWindowAction);
+typedef OnCreateWindowCallback = void Function(
+    CreateWindowAction createWindowAction);
 
 class RampCallbacks {
   final OnSuccessCallback? onSuccess;

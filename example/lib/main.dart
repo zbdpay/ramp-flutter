@@ -65,14 +65,14 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
 
     // Validate authentication method
     if (useAccessToken && accessTokenController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Please enter an Access Token')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter an Access Token')));
       return;
     }
 
     if (!useAccessToken && emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Please enter an Email address')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter an Email address')));
       return;
     }
 
@@ -285,33 +285,23 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                     const Text('Authentication Method:',
                         style: TextStyle(fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            title: const Text('Email'),
-                            value: false,
-                            groupValue: useAccessToken,
-                            onChanged: (value) {
-                              setState(() {
-                                useAccessToken = value!;
-                              });
-                            },
-                          ),
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment<bool>(
+                          value: false,
+                          label: Text('Email'),
                         ),
-                        Expanded(
-                          child: RadioListTile<bool>(
-                            title: const Text('Access Token'),
-                            value: true,
-                            groupValue: useAccessToken,
-                            onChanged: (value) {
-                              setState(() {
-                                useAccessToken = value!;
-                              });
-                            },
-                          ),
+                        ButtonSegment<bool>(
+                          value: true,
+                          label: Text('Access Token'),
                         ),
                       ],
+                      selected: {useAccessToken},
+                      onSelectionChanged: (selection) {
+                        setState(() {
+                          useAccessToken = selection.first;
+                        });
+                      },
                     ),
                     const SizedBox(height: 16),
                     if (!useAccessToken) ...[
@@ -395,7 +385,7 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
                           onChanged: (value) => setState(() {
                             debugMode = value;
                           }),
-                          activeColor: Colors.orange,
+                          activeThumbColor: Colors.orange,
                         ),
                       ],
                     ),

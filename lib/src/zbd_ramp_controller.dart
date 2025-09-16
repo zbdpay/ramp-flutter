@@ -76,18 +76,19 @@ class ZBDRampController {
   }
 
   InAppWebViewSettings get initialSettings => InAppWebViewSettings(
-    useShouldOverrideUrlLoading: false,
-    mediaPlaybackRequiresUserGesture: false,
-    allowsInlineMediaPlayback: true,
-    iframeAllow: "payment; camera; microphone",
-    iframeAllowFullscreen: true,
-    javaScriptEnabled: true,
-    supportMultipleWindows: true,
-    javaScriptCanOpenWindowsAutomatically: true,
-    domStorageEnabled: true,
-    databaseEnabled: true,
-    userAgent: 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36',
-  );
+        useShouldOverrideUrlLoading: false,
+        mediaPlaybackRequiresUserGesture: false,
+        allowsInlineMediaPlayback: true,
+        iframeAllow: "payment; camera; microphone",
+        iframeAllowFullscreen: true,
+        javaScriptEnabled: true,
+        supportMultipleWindows: true,
+        javaScriptCanOpenWindowsAutomatically: true,
+        domStorageEnabled: true,
+        databaseEnabled: true,
+        userAgent:
+            'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36',
+      );
 
   void onWebViewCreated(InAppWebViewController controller) {
     _webViewController = controller;
@@ -126,7 +127,8 @@ class ZBDRampController {
     }
   }
 
-  Future<PermissionResponse?> onPermissionRequest(InAppWebViewController controller, PermissionRequest request) async {
+  Future<PermissionResponse?> onPermissionRequest(
+      InAppWebViewController controller, PermissionRequest request) async {
     print('WebView permission request for origin: ${request.origin}');
     print('Resources requested: ${request.resources}');
 
@@ -231,11 +233,13 @@ class ZBDRampController {
     ''');
   }
 
-  void onReceivedError(InAppWebViewController controller, WebResourceRequest request, WebResourceError error) {
+  void onReceivedError(InAppWebViewController controller,
+      WebResourceRequest request, WebResourceError error) {
     print('WebView resource error: ${error.description} - ${error.type}');
   }
 
-  Future<bool?> onCreateWindow(InAppWebViewController controller, CreateWindowAction createWindowAction) async {
+  Future<bool?> onCreateWindow(InAppWebViewController controller,
+      CreateWindowAction createWindowAction) async {
     print('Window creation requested for: ${createWindowAction.request.url}');
     print('WindowId: ${createWindowAction.windowId}');
 
@@ -284,7 +288,6 @@ class ZBDRampController {
         case 'WIDGET_CLOSE':
           callbacks.onClose?.call();
           break;
-
 
         default:
           if (kDebugMode) {
