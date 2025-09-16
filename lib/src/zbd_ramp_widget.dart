@@ -31,11 +31,53 @@ class _ZBDRampWidgetState extends State<ZBDRampWidget> {
     super.initState();
     _controller = ZBDRampController(
       config: widget.config,
-      callbacks: widget.callbacks,
+      callbacks: widget.callbacks.copyWith(
+        onCreateWindow: _handleCreateWindow,
+      ),
       onInitialized: () {
         if (mounted) {
           setState(() {});
         }
+      },
+    );
+  }
+
+  void _handleCreateWindow(CreateWindowAction createWindowAction) {
+    print("Creating full-screen popup window for OAuth");
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent closing by tapping outside
+      builder: (context) {
+        return Dialog.fullscreen(
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text('Bank Authentication'),
+              leading: IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body: InAppWebView(
+              // Setting the windowId property is important here!
+              windowId: createWindowAction.windowId,
+              initialSettings: _controller.initialSettings,
+              onWebViewCreated: (InAppWebViewController controller) {
+                print("OAuth popup WebView created");
+              },
+              onLoadStart: (InAppWebViewController controller, WebUri? url) {
+                print("OAuth popup onLoadStart: $url");
+              },
+              onLoadStop: (InAppWebViewController controller, WebUri? url) {
+                print("OAuth popup onLoadStop: $url");
+              },
+              onCloseWindow: (InAppWebViewController controller) {
+                print("OAuth popup onCloseWindow called");
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ),
+        );
       },
     );
   }
@@ -66,6 +108,8 @@ class _ZBDRampWidgetState extends State<ZBDRampWidget> {
       onLoadStart: _controller.onLoadStart,
       onLoadStop: _controller.onLoadStop,
       onReceivedError: _controller.onReceivedError,
+      onCreateWindow: _controller.onCreateWindow,
+      onCloseWindow: _controller.onCloseWindow,
     );
 
     if (widget.width != null || widget.height != null) {

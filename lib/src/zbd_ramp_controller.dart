@@ -54,7 +54,7 @@ class ZBDRampController {
   bool get isInitialized => _isInitialized;
 
   Future<void> _requestPermissionsAndInitialize() async {
-    print('🔐 Requesting camera and audio permissions...');
+    print('Requesting camera and audio permissions...');
 
     try {
       final Map<Permission, PermissionStatus> permissions = await [
@@ -62,14 +62,14 @@ class ZBDRampController {
         Permission.microphone,
       ].request();
 
-      print('📷 Camera permission: ${permissions[Permission.camera]}');
-      print('🎤 Microphone permission: ${permissions[Permission.microphone]}');
+      print('Camera permission: ${permissions[Permission.camera]}');
+      print('Microphone permission: ${permissions[Permission.microphone]}');
 
       _isInitialized = true;
-      print('✅ ZBDRampController initialization completed');
+      print('ZBDRampController initialization completed');
       onInitialized?.call();
     } catch (e) {
-      print('❌ Error requesting permissions: $e');
+      print('Error requesting permissions: $e');
       _isInitialized = true;
       onInitialized?.call();
     }
@@ -79,9 +79,11 @@ class ZBDRampController {
     useShouldOverrideUrlLoading: false,
     mediaPlaybackRequiresUserGesture: false,
     allowsInlineMediaPlayback: true,
-    iframeAllow: "camera; microphone",
+    iframeAllow: "payment; camera; microphone",
     iframeAllowFullscreen: true,
     javaScriptEnabled: true,
+    supportMultipleWindows: true,
+    javaScriptCanOpenWindowsAutomatically: true,
     domStorageEnabled: true,
     databaseEnabled: true,
     userAgent: 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36',
@@ -89,7 +91,7 @@ class ZBDRampController {
 
   void onWebViewCreated(InAppWebViewController controller) {
     _webViewController = controller;
-    print('✅ InAppWebView created');
+    print('InAppWebView created');
 
     _webViewController!.addJavaScriptHandler(
       handlerName: 'ZBDRampChannel',
@@ -101,7 +103,7 @@ class ZBDRampController {
     );
 
     final String widgetUrl = _buildWidgetUrl();
-    print('📍 Loading widget URL: $widgetUrl');
+    print('Loading widget URL: $widgetUrl');
 
     _webViewController!.loadUrl(
       urlRequest: URLRequest(url: WebUri(widgetUrl)),
@@ -125,8 +127,8 @@ class ZBDRampController {
   }
 
   Future<PermissionResponse?> onPermissionRequest(InAppWebViewController controller, PermissionRequest request) async {
-    print('📷 WebView permission request for origin: ${request.origin}');
-    print('📷 Resources requested: ${request.resources}');
+    print('WebView permission request for origin: ${request.origin}');
+    print('Resources requested: ${request.resources}');
 
     final resources = <PermissionResourceType>[];
 
@@ -134,7 +136,7 @@ class ZBDRampController {
       if (resource == PermissionResourceType.CAMERA ||
           resource == PermissionResourceType.MICROPHONE) {
         resources.add(resource);
-        print('✅ Granting permission for: $resource');
+        print('Granting permission for: $resource');
       }
     }
 
@@ -145,17 +147,49 @@ class ZBDRampController {
   }
 
   void onLoadStart(InAppWebViewController controller, WebUri? url) {
-    print('🔄 WebView started loading: $url');
+    print('WebView started loading: $url');
   }
 
   void onLoadStop(InAppWebViewController controller, WebUri? url) {
-    print('✅ WebView finished loading: $url');
+    print('WebView finished loading: $url');
 
+    // Inject window.close override for all pages, especially Plaid OAuth
     controller.evaluateJavascript(source: '''
-      console.log('🔍 Testing camera permissions...');
+      // Override window.close() with custom implementation that calls original
+      (function() {
+        var originalClose = window.close;
+        window.close = function() {
+          console.log('Custom window.close() called - simulating window close');
+
+          // Simulate window close by hiding the page content
+          try {
+            // Hide the entire page to simulate window closing
+            document.body.style.display = 'none';
+            document.documentElement.style.display = 'none';
+
+            // Also dispatch a close event that Plaid might be listening for
+            try {
+              var closeEvent = new Event('beforeunload');
+              window.dispatchEvent(closeEvent);
+            } catch (e) {
+              console.log('Could not dispatch beforeunload event:', e);
+            }
+
+            console.log('Simulated window close by hiding content');
+            return true;
+          } catch (e) {
+            console.log('Failed to simulate window close:', e);
+            return false;
+          }
+        };
+
+        console.log('Custom window.close() installed');
+      })();
+
+      console.log('Testing camera permissions...');
 
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        console.log('✅ getUserMedia is available');
+        console.log('getUserMedia is available');
 
         navigator.permissions.query({name: 'camera'}).then(function(result) {
           console.log('📷 Camera permission status: ' + result.state);
@@ -164,12 +198,12 @@ class ZBDRampController {
             payload: { status: result.state }
           }));
         }).catch(function(error) {
-          console.log('❌ Permission query failed:', error);
+          console.log('Permission query failed:', error);
         });
 
         navigator.mediaDevices.getUserMedia({ video: true })
           .then(function(stream) {
-            console.log('✅ Camera access granted');
+            console.log('Camera access granted');
             stream.getTracks().forEach(track => track.stop());
             window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify({
               type: 'CAMERA_TEST_SUCCESS',
@@ -177,7 +211,7 @@ class ZBDRampController {
             }));
           })
           .catch(function(error) {
-            console.log('❌ Camera access failed:', error.name, error.message);
+            console.log('Camera access failed:', error.name, error.message);
             window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify({
               type: 'CAMERA_TEST_ERROR',
               payload: {
@@ -188,7 +222,7 @@ class ZBDRampController {
             }));
           });
       } else {
-        console.log('❌ getUserMedia not available');
+        console.log('getUserMedia not available');
         window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify({
           type: 'CAMERA_TEST_ERROR',
           payload: { message: 'getUserMedia not available' }
@@ -198,7 +232,24 @@ class ZBDRampController {
   }
 
   void onReceivedError(InAppWebViewController controller, WebResourceRequest request, WebResourceError error) {
-    print('❌ WebView resource error: ${error.description} - ${error.type}');
+    print('WebView resource error: ${error.description} - ${error.type}');
+  }
+
+  Future<bool?> onCreateWindow(InAppWebViewController controller, CreateWindowAction createWindowAction) async {
+    print('Window creation requested for: ${createWindowAction.request.url}');
+    print('WindowId: ${createWindowAction.windowId}');
+
+    // Handle all popup creation since OAuth URL might be null initially
+    print('Creating popup window for all requests');
+
+    // Call the widget's popup creation handler
+    callbacks.onCreateWindow?.call(createWindowAction);
+    return true;
+  }
+
+  void onCloseWindow(InAppWebViewController controller) {
+    print('WebView window close requested');
+    // Window is closing - this is the proper way to handle window.close()
   }
 
   void _handleMessage(String message) {
@@ -233,6 +284,7 @@ class ZBDRampController {
         case 'WIDGET_CLOSE':
           callbacks.onClose?.call();
           break;
+
 
         default:
           if (kDebugMode) {
