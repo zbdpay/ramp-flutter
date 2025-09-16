@@ -1,0 +1,3 @@
+# Files to exclude from pub.dev package
+.fvm/fvm_config.json
+example/android/gradle/wrapper/gradle-wrapper.properties

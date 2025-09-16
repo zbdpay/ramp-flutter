@@ -33,7 +33,6 @@ migrate_working_dir/
 
 # FVM (Flutter Version Management)
 .fvm/
-!.fvm/fvm_config.json
 
 # Symbolication related
 app.*.symbols
@@ -53,7 +52,6 @@ app.*.map.json
 /example/android/build/
 /example/android/.gradle/
 /example/android/gradle/
-!/example/android/gradle/wrapper/
 /example/build/
 
 # Coverage reports
