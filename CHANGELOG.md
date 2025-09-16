@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Widget now expands to fill available space when no dimensions specified (instead of fixed 600px height)
 - Updated session logic to match TypeScript implementation
-- Removed test/debug code that loaded Google.com in WebView
+- Webview library updated
+- Plaid and Onfido flows fixed
 
 ### Added
 - Support for access_token authentication in addition to email
