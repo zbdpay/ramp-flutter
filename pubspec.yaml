@@ -1,6 +1,6 @@
 name: zbd_ramp
 description: ZBD Ramp widget for Flutter - Bitcoin Lightning Network payments integration
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/zbdpay/ramp-flutter
 
 environment:
