@@ -86,6 +86,9 @@ class ZBDRampController {
         javaScriptCanOpenWindowsAutomatically: true,
         domStorageEnabled: true,
         databaseEnabled: true,
+        cacheEnabled: false,
+        clearCache: true,
+        thirdPartyCookiesEnabled: true,
         userAgent:
             'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Mobile Safari/537.36',
       );
@@ -155,8 +158,19 @@ class ZBDRampController {
   void onLoadStop(InAppWebViewController controller, WebUri? url) {
     print('WebView finished loading: $url');
 
-    // Inject window.close override for all pages, especially Plaid OAuth
     controller.evaluateJavascript(source: '''
+      (function() {
+        window.addEventListener('zbd-ramp-message', function(event) {
+          console.log('ZBD Ramp message received:', JSON.stringify(event.detail));
+
+          if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+            window.flutter_inappwebview.callHandler('ZBDRampChannel', JSON.stringify(event.detail));
+          }
+        });
+
+        console.log('ZBD Ramp event listener installed');
+      })();
+
       // Override window.close() with custom implementation that calls original
       (function() {
         var originalClose = window.close;
@@ -262,7 +276,7 @@ class ZBDRampController {
       final postMessage = PostMessageData.fromJson(data);
 
       switch (postMessage.type) {
-        case 'WIDGET_SUCCESS':
+        case 'WIDGET_TRANSACTION_COMPLETE':
           callbacks.onSuccess?.call(postMessage.payload);
           break;
 
@@ -272,8 +286,7 @@ class ZBDRampController {
           break;
 
         case 'WIDGET_STEP_CHANGE':
-          final step = postMessage.payload?['step'] as String? ?? '';
-          callbacks.onStepChange?.call(step);
+          callbacks.onStepChange?.call(postMessage.payload ?? {});
           break;
 
         case 'WIDGET_LOG':

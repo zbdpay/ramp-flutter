@@ -37,6 +37,17 @@ Flutter package for ZBD Ramp widget that enables Bitcoin purchase interface for 
 
 ## Installation
 
+### Install from pub.dev
+
+**Option 1: Using Flutter CLI (recommended)**
+
+```bash
+flutter pub add zbd_ramp
+flutter pub add http
+```
+
+**Option 2: Manual installation**
+
 Add this to your package's `pubspec.yaml` file:
 
 ```yaml
@@ -50,6 +61,8 @@ Then run:
 ```bash
 flutter pub get
 ```
+
+**Package on pub.dev:** https://pub.dev/packages/zbd_ramp
 
 ## Quick Start
 

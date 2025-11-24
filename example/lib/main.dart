@@ -161,8 +161,10 @@ class _ZBDRampHomePageState extends State<ZBDRampHomePage> {
     );
   }
 
-  void handleStepChange(String step) {
-    addLog('STEP: $step');
+  void handleStepChange(Map<String, dynamic> payload) {
+    final currentStep = payload['currentStep'] ?? 'unknown';
+    final previousStep = payload['previousStep'] ?? 'none';
+    addLog('STEP: $previousStep → $currentStep');
   }
 
   void handleLog(RampLog log) {
