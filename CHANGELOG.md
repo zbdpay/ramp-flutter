@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+
+
+## [1.0.2] - 2025-11-24
 ### Fixed
 - PostMessage communication now works properly in WebView by listening to CustomEvent instead of relying on fake parent window
 - Widget event messages (WIDGET_READY, WIDGET_STEP_CHANGE, etc.) now properly received in Flutter
@@ -14,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved debug logging to show actual message content instead of [object Object]
 - Fixed WIDGET_TRANSACTION_COMPLETE event name to match SDK
 - Fixed StepChange payload to pass full object with previousStep and currentStep
-
 ### Added
 - CustomEvent bridge for WebView PostMessage communication
+
 
 ## [1.0.1] - 2025-11-24
 ### Changed
